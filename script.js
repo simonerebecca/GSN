@@ -1,29 +1,31 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Fetch actuele analyses
-    const analysisContainer = document.getElementById('analysis-container');
-    const analyses = [
-        { title: 'Cyberaanval Trends', content: 'Een overzicht van de meest recente cyberaanvallen wereldwijd.' },
-        { title: 'Klimaat en Veiligheid', content: 'Hoe klimaatverandering invloed heeft op internationale veiligheid.' },
-        { title: 'Terrorisme Dreiging', content: 'Analyse van de huidige terreurdreigingen in Europa.' }
-    ];
+document.addEventListener('DOMContentLoaded', function() {
+    // Hier kunnen we bijvoorbeeld dynamische data toevoegen voor elk dreigingsgebied.
+    // Dit zou normaal gesproken uit een API kunnen komen, maar we gebruiken statische data in dit voorbeeld.
 
-    analyses.forEach(analysis => {
-        const analysisDiv = document.createElement('div');
-        analysisDiv.innerHTML = `<h3>${analysis.title}</h3><p>${analysis.content}</p>`;
-        analysisContainer.appendChild(analysisDiv);
-    });
+    const terrorismeData = {
+        title: "Actuele terrorisme informatie",
+        content: "De wereld ziet een toename in terroristische dreigingen, vooral in gebieden zoals het Midden-Oosten, Afrika en Zuid-Azië. Aantal incidenten is gestegen in 2024."
+    };
 
-    // Fetch data van toonaangevende bronnen
-    const dataList = document.getElementById('data-list');
-    const dataSources = [
-        { name: 'Europol', link: 'https://www.europol.europa.eu' },
-        { name: 'Interpol', link: 'https://www.interpol.int' },
-        { name: 'IPCC', link: 'https://www.ipcc.ch' }
-    ];
+    const cyberaanvallenData = {
+        title: "Cyberaanvallen in 2024",
+        content: "Cyberaanvallen tegen bedrijven en overheden wereldwijd zijn met 30% gestegen. Beschermingsmaatregelen tegen ransomware-aanvallen worden steeds belangrijker."
+    };
 
-    dataSources.forEach(source => {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `<a href="${source.link}" target="_blank">${source.name}</a>`;
-        dataList.appendChild(listItem);
-    });
+    const conflictenData = {
+        title: "Conflicten wereldwijd",
+        content: "Er zijn momenteel gewapende conflicten in Oekraïne, Syrië en verschillende Afrikaanse landen. De impact op de veiligheid blijft toenemen."
+    };
+
+    const klimaatData = {
+        title: "Klimaatverandering en veiligheid",
+        content: "Klimaatverandering zorgt voor meer natuurrampen, wat de veiligheid van bevolkingsgroepen verstoort. Stormen, overstromingen en droogte hebben een directe invloed op de politieke stabiliteit."
+    };
+
+    // Vul de secties met de data
+    document.getElementById('terrorisme-info').innerHTML = `<h4>${terrorismeData.title}</h4><p>${terrorismeData.content}</p>`;
+    document.getElementById('cyberaanvallen-info').innerHTML = `<h4>${cyberaanvallenData.title}</h4><p>${cyberaanvallenData.content}</p>`;
+    document.getElementById('conflicten-info').innerHTML = `<h4>${conflictenData.title}</h4><p>${conflictenData.content}</p>`;
+    document.getElementById('klimaatverandering-info').innerHTML = `<h4>${klimaatData.title}</h4><p>${klimaatData.content}</p>`;
 });
+
