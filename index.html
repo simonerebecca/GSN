@@ -1,44 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veiligheidsinformatie Platform</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Veiligheidsdashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>Veiligheidsinformatie Platform</h1>
+        <div class="logo">
+            <h1>Veiligheidsdashboard</h1>
+        </div>
         <nav>
             <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#analyses">Analyses</a></li>
-                <li><a href="#data">Data</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="#terrorisme">Terrorisme</a></li>
+                <li><a href="#cyberaanvallen">Cyberaanvallen</a></li>
+                <li><a href="#conflicten">Conflicten</a></li>
+                <li><a href="#klimaatverandering">Klimaatverandering</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <section id="home">
-            <h2>Welkom</h2>
-            <p>Ontdek actuele informatie, analyses en data over nationale en internationale veiligheid.</p>
+        <section id="intro">
+            <h2>Welkom op het Veiligheidsdashboard</h2>
+            <p>Dit platform biedt actuele informatie, analyses en data over nationale en internationale veiligheid.</p>
+            <p>Verken de verschillende dreigingen zoals terrorisme, cyberaanvallen, conflicten en klimaatverandering.</p>
         </section>
 
-        <section id="analyses">
-            <h2>Actuele Analyses</h2>
-            <div id="analysis-container"></div>
+        <section id="terrorisme" class="data-section">
+            <h3>Terrorisme</h3>
+            <div id="terrorisme-info" class="info-box">
+                <p>Actuele informatie en analyses over terrorisme wereldwijd.</p>
+                <!-- Dynamische data kan hier worden toegevoegd via JavaScript -->
+            </div>
         </section>
 
-        <section id="data">
-            <h2>Gegevensbronnen</h2>
-            <p>Hieronder vindt u gegevens van toonaangevende bronnen:</p>
-            <ul id="data-list"></ul>
+        <section id="cyberaanvallen" class="data-section">
+            <h3>Cyberaanvallen</h3>
+            <div id="cyberaanvallen-info" class="info-box">
+                <p>Informatie over cyberdreigingen en recente cyberaanvallen.</p>
+                <!-- Dynamische data kan hier worden toegevoegd via JavaScript -->
+            </div>
+        </section>
+
+        <section id="conflicten" class="data-section">
+            <h3>Conflicten</h3>
+            <div id="conflicten-info" class="info-box">
+                <p>Informatie over conflicten en gewapende strijden wereldwijd.</p>
+                <!-- Dynamische data kan hier worden toegevoegd via JavaScript -->
+            </div>
+        </section>
+
+        <section id="klimaatverandering" class="data-section">
+            <h3>Klimaatverandering</h3>
+            <div id="klimaatverandering-info" class="info-box">
+                <p>Analyse en data over de gevolgen van klimaatverandering voor de veiligheid.</p>
+                <!-- Dynamische data kan hier worden toegevoegd via JavaScript -->
+            </div>
         </section>
     </main>
 
     <footer>
-        <p>© 2025 Veiligheidsinformatie Platform</p>
+        <p>&copy; 2025 Veiligheidsdashboard - Alle rechten voorbehouden.</p>
     </footer>
 
     <script src="script.js"></script>
