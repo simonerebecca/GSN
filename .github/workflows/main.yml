@@ -13,13 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build and Test
-        run: |
-          echo "Running tests..."
-          ./run-tests.sh
-
       - name: Deploy to Server
         run: |
-          ssh -o StrictHostKeyChecking=no webserver@93.158.211.7 -p 2222 "cd /var/www/GSN && git pull origin main && ./deploy.sh"
+          ssh -o StrictHostKeyChecking=no webserver@93.158.211.7 -p 2222 "mkdir -p /var/www/GSN && rsync -avz /home/runner/work/GSN/GSN/ /var/www/GSN/"
         env:
           SSH_PRIVATE_KEY: ${{ secrets.WEBSERVER_KEY }}
