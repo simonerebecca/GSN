@@ -4,12 +4,12 @@ body {
     margin: 0;
     padding: 0;
     background-color: #f0f4f7;
-    color: #F8F8FF;
+    color: #333; /* Donkere tekstkleur voor betere leesbaarheid */
 }
 
 h1, h2, h3 {
     font-family: 'Open Sans', sans-serif;
-    color: #191970;
+    color: #191970; /* Donkerblauw voor kopjes */
 }
 
 a {
@@ -67,11 +67,12 @@ main {
 #intro h2 {
     font-size: 2.5em;
     margin-bottom: 10px;
+    color: #191970; /* Donkerblauw voor de hoofd titel */
 }
 
 #intro p {
     font-size: 1.2em;
-    color: #374476;
+    color: #2c3e50; /* Donkergrijze kleur voor de tekst in introductie */
 }
 
 /* Dashboard Layout */
@@ -90,7 +91,7 @@ main {
 }
 
 .data-section h3 {
-    color: #2c3e50;
+    color: #2c3e50; /* Donkergrijs voor de sectie titels */
     margin-bottom: 20px;
     font-size: 1.6em;
 }
@@ -100,7 +101,7 @@ main {
     padding: 15px;
     border-radius: 6px;
     font-size: 1.1em;
-    color: #555;
+    color: #555; /* Donkergrijze kleur voor tekst in info-box */
 }
 
 .info-box p {
