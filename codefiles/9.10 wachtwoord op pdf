@@ -1,0 +1,157 @@
+//1. Wachtwoordbeveiliging voor PDF
+We maken gebruik van PyPDF2 om het gegenereerde PDF-bestand te versleutelen. Dit zorgt ervoor dat alleen gebruikers met het juiste wachtwoord het rapport kunnen openen.
+
+Installatie
+Als PyPDF2 nog niet geïnstalleerd is://
+
+pip install pypdf2
+
+//Flask-code met Wachtwoordbeveiliging
+Hier is de aangepaste code://
+
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from datetime import datetime
+from PyPDF2 import PdfReader, PdfWriter
+import os
+
+
+class WatermarkCanvas(canvas.Canvas):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pages = []
+
+    def showPage(self):
+        self.pages.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self):
+        for page_num, page in enumerate(self.pages, start=1):
+            self.__dict__.update(page)
+            self.add_watermark()
+            self.draw_page_number(page_num)
+            super().showPage()
+        super().save()
+
+    def add_watermark(self):
+        self.saveState()
+        self.setFont("Helvetica", 50)
+        self.setFillGray(0.9, 0.5)
+        self.translate(300, 400)
+        self.rotate(45)
+        self.drawCentredString(0, 0, "VERSTRENGD - VERTROUWELIJK")
+        self.restoreState()
+
+    def draw_page_number(self, page_num):
+        self.setFont("Helvetica", 10)
+        self.drawRightString(200 * mm, 10 * mm, f"Pagina {page_num}")
+
+
+def encrypt_pdf(buffer, password):
+    """Versleutelt een PDF-buffer met een wachtwoord."""
+    buffer.seek(0)  # Zorg dat we vanaf het begin van de buffer lezen
+    reader = PdfReader(buffer)
+    writer = PdfWriter()
+
+    for page in reader.pages:
+        writer.add_page(page)
+
+    writer.encrypt(password)
+
+    encrypted_buffer = BytesIO()
+    writer.write(encrypted_buffer)
+    return encrypted_buffer
+
+
+@app.route('/stats/export/pdf', methods=['GET'])
+@login_required
+def export_stats_pdf():
+    if current_user.role != "admin":
+        return jsonify({"message": "Toegang geweigerd"}), 403
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+
+    # Voorpagina
+    styles = getSampleStyleSheet()
+    logo_path = os.path.join(app.root_path, 'static/images/logo.png')
+    if os.path.exists(logo_path):
+        img = Image(logo_path, width=150, height=75)
+        elements.append(img)
+
+    title = Paragraph("Dreigingsrapport - Statistieken", styles['Title'])
+    elements.append(title)
+    elements.append(Spacer(1, 20))
+
+    summary = f"""
+        Dit rapport bevat de nieuwste statistieken over dreigingen wereldwijd.
+        Totale dreigingen gedetecteerd: {Threat.query.count()}.
+        Raadpleeg de volgende pagina's voor details.
+    """
+    elements.append(Paragraph(summary, styles['Normal']))
+    elements.append(Spacer(1, 40))
+
+    signature_text = f"Rapport gegenereerd door: {current_user.username} op {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    signature = Paragraph(signature_text, styles['Italic'])
+    elements.append(signature)
+    elements.append(Spacer(1, 40))
+
+    # Tabellenpagina
+    threats = Threat.query.all()
+    data = [["Type", "Locatie", "Prioriteit", "Tijd"]]
+    for threat in threats:
+        data.append([
+            threat.type,
+            threat.location,
+            threat.priority,
+            threat.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        ])
+
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    elements.append(table)
+
+    # PDF genereren met watermerk
+    doc.build(elements, canvasmaker=WatermarkCanvas)
+
+    # Versleutel de PDF met een wachtwoord
+    password = "SterkWachtwoord123"  # Dynamisch wachtwoord mogelijk maken
+    encrypted_buffer = encrypt_pdf(buffer, password)
+
+    # Return het versleutelde PDF-bestand
+    encrypted_buffer.seek(0)
+    response = make_response(encrypted_buffer.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=dreigingenrapport.pdf"
+    response.headers["Content-Type"] = "application/pdf"
+    return response
+
+
+//Belangrijke Verbeteringen
+Encryptie:
+
+encrypt_pdf() versleutelt het PDF-bestand met een wachtwoord. Dit kan hard-coded zijn of dynamisch gegenereerd (bijvoorbeeld uniek voor elke gebruiker).
+Veilige Buffer:
+
+Het PDF-bestand wordt versleuteld in een tijdelijke buffer (BytesIO), zonder dat het op schijf wordt opgeslagen.
+Watermerk:
+
+Elke pagina heeft een subtiel, semi-transparant watermerk met vertrouwelijkheidsniveau.
+Wachtwoordbeheer:
+
+Voor productie kun je het wachtwoord dynamisch instellen, bijvoorbeeld op basis van gebruikersinformatie://
+
+password = f"{current_user.username}_Secure123"
+
+
