@@ -1,0 +1,75 @@
+// Geografische Visualisaties
+Hiervoor gebruiken we Leaflet.js, een krachtige bibliotheek voor interactieve kaarten.
+
+Installatie in React:
+Voer dit uit in de terminal://
+
+npm install react-leaflet leaflet
+
+//Kaartweergave met Markerdata
+React Component: ThreatsMap.jsx//
+
+import React from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+
+const ThreatsMap = () => {
+  // Dummy data: Dreigingen met coördinaten
+  const threats = [
+    { id: 1, type: "Cyberaanval", location: "Amsterdam", lat: 52.3676, lng: 4.9041 },
+    { id: 2, type: "Terrorisme", location: "Brussel", lat: 50.8503, lng: 4.3517 },
+    { id: 3, type: "Conflict", location: "Kiev", lat: 50.4501, lng: 30.5234 },
+  ];
+
+  return (
+    <MapContainer center={[52.3676, 4.9041]} zoom={5} style={{ height: "500px", width: "100%" }}>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      />
+      {threats.map((threat) => (
+        <Marker key={threat.id} position={[threat.lat, threat.lng]}>
+          <Popup>
+            <strong>{threat.type}</strong>
+            <br />
+            Locatie: {threat.location}
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
+  );
+};
+
+export default ThreatsMap;
+
+
+//Gebruik in een pagina://
+
+import React from "react";
+import ThreatsMap from "./ThreatsMap";
+
+const Dashboard = () => {
+  return (
+    <div>
+      <h1>Geografische Dreigingen</h1>
+      <ThreatsMap />
+    </div>
+  );
+};
+
+export default Dashboard;
+
+
+//Geavanceerd: Dynamische Markerdata uit Backend
+Je kunt de dreigingsdata (type, locatie, coördinaten) vanuit je Flask backend laden en dynamisch markers genereren.
+
+Flask API Endpoint voor Geografische Data://
+
+@app.route('/get-threats', methods=['GET'])
+def get_threats():
+    threats = [
+        {"id": 1, "type": "Cyberaanval", "location": "Amsterdam", "lat": 52.3676, "lng": 4.9041},
+        {"id": 2, "type": "Terrorisme", "location": "Brussel", "lat": 50.8503, "lng": 4.3517},
+        {"id": 3, "type": "Conflict", "location": "Kiev", "lat": 50.4501, "lng": 30.5234},
+    ]
+    return jsonify(threats)
