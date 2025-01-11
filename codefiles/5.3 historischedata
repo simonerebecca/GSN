@@ -1,0 +1,76 @@
+//Notificaties bij Kritieke Dreigingen
+We gebruiken WebSockets om kritieke dreigingen in realtime te detecteren en notificaties weer te geven.
+
+Flask Backend Aanpassing:
+Bewerk de WebSocket-code om kritieke dreigingen te verzenden:// 
+
+@socketio.on('connect')
+def send_threats():
+    while True:
+        # Simuleer een nieuwe dreiging
+        new_threat = {
+            "id": random.randint(4, 100),
+            "type": random.choice(["Cyberaanval", "Terrorisme", "Conflict"]),
+            "location": "Random City",
+            "lat": random.uniform(40.0, 60.0),
+            "lng": random.uniform(10.0, 30.0),
+            "priority": random.choice(["Low", "Medium", "High"])  # Prioriteit toevoegen
+        }
+        socketio.emit('new_threat', new_threat)
+        time.sleep(5)
+
+//React Component: Notificatiesysteem//
+import React, { useEffect, useState } from "react";
+import io from "socket.io-client";
+
+const CriticalNotifications = () => {
+  const [notifications, setNotifications] = useState([]);
+  const socket = io("http://localhost:5000");
+
+  useEffect(() => {
+    socket.on("new_threat", (newThreat) => {
+      if (newThreat.priority === "High") {
+        setNotifications((prev) => [newThreat, ...prev]);
+      }
+    });
+
+    return () => socket.disconnect(); // Clean up
+  }, [socket]);
+
+  return (
+    <div>
+      <h2>Kritieke Waarschuwingen</h2>
+      <ul>
+        {notifications.map((threat, index) => (
+          <li key={index}>
+            <strong>{threat.type}</strong> in {threat.location} (Prioriteit: {threat.priority})
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default CriticalNotifications;
+
+
+//Frontend Dashboard met Alle Functies
+Combineer alles in een overzichtelijk dashboard.//
+
+import React from "react";
+import DynamicThreatTimeline from "./DynamicThreatTimeline";
+import CriticalNotifications from "./CriticalNotifications";
+import DynamicHeatMap from "./DynamicHeatMap";
+
+const Dashboard = () => {
+  return (
+    <div>
+      <h1>Veiligheidsdashboard</h1>
+      <CriticalNotifications />
+      <DynamicThreatTimeline />
+      <DynamicHeatMap />
+    </div>
+  );
+};
+
+export default Dashboard;
