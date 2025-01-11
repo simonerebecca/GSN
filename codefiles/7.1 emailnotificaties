@@ -1,0 +1,55 @@
+//E-mailnotificaties voor Kritieke Dreigingen
+We gebruiken Flask-Mail om e-mailnotificaties te verzenden wanneer een nieuwe kritieke dreiging wordt gedetecteerd.
+
+Flask Backend: Configuratie
+Installatie://
+
+pip install flask-mail
+
+//E-mailconfiguratie in Flask:
+Voeg je SMTP-instellingen toe, bijvoorbeeld voor Gmail.//
+
+from flask_mail import Mail, Message
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'jouw-email@gmail.com'
+app.config['MAIL_PASSWORD'] = 'jouw-wachtwoord'  # Gebruik een app-specifiek wachtwoord voor extra veiligheid.
+app.config['MAIL_DEFAULT_SENDER'] = 'jouw-email@gmail.com'
+
+mail = Mail(app)
+
+//E-mail Verzenden bij Kritieke Dreiging:
+Bewerk de WebSocket-logica om e-mails te verzenden bij prioriteit "High".//
+
+@socketio.on('connect')
+def send_threats():
+    while True:
+        new_threat = {
+            "type": random.choice(["Cyberaanval", "Terrorisme", "Conflict"]),
+            "location": "Random City",
+            "lat": random.uniform(40.0, 60.0),
+            "lng": random.uniform(10.0, 30.0),
+            "priority": random.choice(["Low", "Medium", "High"])
+        }
+
+        # Opslaan in database
+        db.session.add(Threat(type=new_threat["type"], location=new_threat["location"], priority=new_threat["priority"]))
+        db.session.commit()
+
+        # Versturen naar frontend
+        socketio.emit('new_threat', new_threat)
+
+        # E-mail verzenden bij hoge prioriteit
+        if new_threat["priority"] == "High":
+            with app.app_context():
+                msg = Message(
+                    "Kritieke Dreiging Gedetecteerd",
+                    recipients=["ontvanger@gmail.com"]
+                )
+                msg.body = f"Type: {new_threat['type']}\nLocatie: {new_threat['location']}\nPrioriteit: {new_threat['priority']}"
+                mail.send(msg)
+
+        time.sleep(5)
+
