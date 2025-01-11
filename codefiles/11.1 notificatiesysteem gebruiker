@@ -1,0 +1,61 @@
+//Hier is hoe je een notificatiesysteem en UI-aanpassingen kunt toevoegen om gebruikers en beheerders beter te informeren over rapportdownloads en beveiliging.
+
+1. Notificatiesysteem
+Het notificatiesysteem informeert de gebruiker en beheerders over belangrijke acties, zoals:
+
+Succesvolle download van een rapport.
+Misbruikpogingen (bijvoorbeeld te veel downloads in korte tijd).
+A. Gebruikersnotificaties
+Bij succesvolle downloads geef je een directe melding aan de gebruiker.
+
+Flask-Flash Berichten
+Gebruik de flash()-functie van Flask om berichten aan de gebruiker te tonen.//
+
+from flask import flash
+
+@app.route('/stats/export/pdf', methods=['GET'])
+@login_required
+def export_stats_pdf():
+    if current_user.role != "admin":
+        flash("Toegang geweigerd. Alleen beheerders kunnen dit rapport downloaden.", "error")
+        return redirect('/dashboard')
+
+    # Dynamisch wachtwoord genereren
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    password = generate_password(current_user.username, timestamp)
+
+    # PDF generatie en encryptie (zoals eerder uitgelegd)
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    # Voeg inhoud toe...
+    doc.build([], canvasmaker=WatermarkCanvas)
+    encrypted_buffer = encrypt_pdf(buffer, password)
+
+    # Log de downloadactie
+    log_pdf_download(current_user.username, timestamp)
+
+    # Flash bericht
+    flash("Het rapport is succesvol gegenereerd en beveiligd met een wachtwoord.", "success")
+
+    # Retourneer het PDF-bestand
+    encrypted_buffer.seek(0)
+    response = make_response(encrypted_buffer.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=dreigingenrapport.pdf"
+    response.headers["Content-Type"] = "application/pdf"
+    return response
+
+
+//Toon Flash Berichten in HTML
+Voeg deze code toe aan je HTML-template (bijvoorbeeld base.html)://
+
+{% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    <div id="flash-messages">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+
