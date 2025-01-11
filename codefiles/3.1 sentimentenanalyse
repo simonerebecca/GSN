@@ -1,0 +1,107 @@
+//1. Sentimentanalyse
+We analyseren teksten (bijv. nieuws, tweets) om te bepalen of ze positief, negatief of neutraal zijn, wat inzicht kan bieden in publieke reacties op veiligheidssituaties.
+
+Python Sentiment Analyse met NLP
+We gebruiken transformers (van Hugging Face) en het model "distilbert-base-uncased-finetuned-sst-2-english" voor sentimentanalyse.
+
+Installatie://
+
+pip install transformers pandas
+
+//Script: sentiment_analysis.py
+
+from transformers import pipeline
+import pandas as pd
+
+# Initialiseer het sentimentanalysemodel
+sentiment_analyzer = pipeline("sentiment-analysis")
+
+# Dummy data: teksten
+data = [
+    "The cyberattack has caused severe disruptions.",
+    "The new peace treaty has brought hope to the region.",
+    "There is uncertainty about the upcoming security measures."
+]
+
+# Sentimentanalyse
+results = sentiment_analyzer(data)
+
+# Combineer teksten en resultaten in een DataFrame
+df = pd.DataFrame({"Text": data, "Sentiment": [res['label'] for res in results], "Score": [res['score'] for res in results]})
+
+print(df)
+
+//Output:
+                                             Text  Sentiment     Score
+0   The cyberattack has caused severe disruptions.  NEGATIVE  0.999805
+1  The new peace treaty has brought hope to th...  POSITIVE  0.999487
+2  There is uncertainty about the upcoming sec...  NEGATIVE  0.998623
+
+//Integratie met Flask
+Flask API Endpoint://
+
+from flask import Flask, request, jsonify
+from transformers import pipeline
+
+app = Flask(__name__)
+
+# Initialiseer sentimentanalyse
+sentiment_analyzer = pipeline("sentiment-analysis")
+
+@app.route('/sentiment-analysis', methods=['POST'])
+def analyze_sentiment():
+    # Verkrijg teksten van de frontend
+    data = request.json.get("texts", [])
+    
+    # Analyseer de sentimenten
+    results = sentiment_analyzer(data)
+    return jsonify(results)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+//Frontend Integratie
+React Component: SentimentAnalysis.jsx//
+
+import React, { useState } from "react";
+
+const SentimentAnalysis = () => {
+  const [texts, setTexts] = useState([]);
+  const [results, setResults] = useState(null);
+
+  const handleAnalyze = () => {
+    fetch("http://localhost:5000/sentiment-analysis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts }),
+    })
+      .then((response) => response.json())
+      .then((data) => setResults(data))
+      .catch((error) => console.error("Error:", error));
+  };
+
+  return (
+    <div>
+      <h2>Sentimentanalyse</h2>
+      <textarea
+        placeholder="Voer tekst in, gescheiden door een nieuwe regel."
+        onChange={(e) => setTexts(e.target.value.split("\n"))}
+      />
+      <button onClick={handleAnalyze}>Analyseer Sentiment</button>
+      {results && (
+        <ul>
+          {results.map((result, index) => (
+            <li key={index}>
+              {texts[index]} - {result.label} ({(result.score * 100).toFixed(2)}%)
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+export default SentimentAnalysis;
+
+
