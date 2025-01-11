@@ -22,4 +22,4 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no webserver@93.158.211.7 -p 2222 "cd https://github.com/simonerebecca/GSN.git && git pull origin main && ./deploy.sh"
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SERVER_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.WEBSERVER_KEY }}
