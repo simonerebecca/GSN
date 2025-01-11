@@ -1,0 +1,112 @@
+//2. AI-gestuurde Analyse
+Hier gebruiken we Python en bibliotheken zoals scikit-learn of transformers (voor NLP). Als voorbeeld implementeer ik een eenvoudig model voor patroonherkenning van dreigingsdata.
+
+AI Model: Trendvoorspelling
+Installatie://
+
+pip install scikit-learn pandas numpy
+
+
+//Voorbeeldscript: trend_analysis.py//
+
+
+
+
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+# Dummy data: historische incidenten per maand
+data = {
+    "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    "Cyber Attacks": [5, 7, 8, 10, 12, 15],
+    "Terrorism": [3, 4, 3, 5, 6, 7],
+    "Conflicts": [2, 3, 4, 5, 5, 6]
+}
+
+df = pd.DataFrame(data)
+
+# Model voor trendanalyse
+X = np.arange(len(df)).reshape(-1, 1)  # Tijd (maanden)
+y = df["Cyber Attacks"]  # Aantal incidenten
+
+model = LinearRegression()
+model.fit(X, y)
+
+# Voorspelling
+future = np.array([[6], [7], [8]])  # Volgende 3 maanden
+predictions = model.predict(future)
+
+# Resultaat
+print("Voorspelling Cyberaanvallen voor komende maanden:", predictions)
+
+
+//Output:
+
+Voorspelling Cyberaanvallen voor komende maanden: [16. 17. 18.]
+
+//Integratie met Flask Backend
+Je kunt het AI-script integreren met Flask om voorspellingen via een API beschikbaar te maken.
+
+AI Endpoint in Flask://
+from flask import Flask, jsonify
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+app = Flask(__name__)
+
+@app.route('/predict-trends', methods=['GET'])
+def predict_trends():
+    # Dummy data
+    X = np.array([[0], [1], [2], [3], [4], [5]])  # Tijd
+    y = np.array([5, 7, 8, 10, 12, 15])  # Incidenten
+
+    # Model
+    model = LinearRegression()
+    model.fit(X, y)
+
+    # Voorspellingen
+    future = np.array([[6], [7], [8]])  # Komende maanden
+    predictions = model.predict(future).tolist()
+
+    return jsonify({"predictions": predictions})
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+//Integratie met React
+Aanpassen van de Frontend: Gebruik de /predict-trends API en integreer de voorspellingen in je dashboard of grafieken.//
+
+import React, { useState, useEffect } from "react";
+
+const TrendPrediction = () => {
+  const [predictions, setPredictions] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/predict-trends")
+      .then((response) => response.json())
+      .then((data) => setPredictions(data.predictions))
+      .catch((error) => console.error("Error fetching predictions:", error));
+  }, []);
+
+  return (
+    <div>
+      <h2>Voorspellingen</h2>
+      {predictions.length > 0 ? (
+        <ul>
+          {predictions.map((value, index) => (
+            <li key={index}>Maand {index + 1}: {value.toFixed(2)} incidenten</li>
+          ))}
+        </ul>
+      ) : (
+        <p>Voorspellingen worden geladen...</p>
+      )}
+    </div>
+  );
+};
+
+export default TrendPrediction;
+
+
+//Met deze stappen heb je zowel visualisaties als AI-analyse geïntegreerd.
