@@ -1,0 +1,76 @@
+//Filters Toevoegen in de Frontend
+React Component: Filterbaar Notificatielogboek
+We voegen een zoekbalk en filters toe.//
+
+import React, { useEffect, useState } from "react";
+
+const ThreatLog = () => {
+  const [threats, setThreats] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filterPriority, setFilterPriority] = useState("");
+
+  useEffect(() => {
+    fetch("http://localhost:5000/get-threats")
+      .then((response) => response.json())
+      .then((data) => setThreats(data))
+      .catch((error) => console.error("Error fetching threats:", error));
+  }, []);
+
+  const filteredThreats = threats.filter((threat) => {
+    return (
+      threat.type.toLowerCase().includes(search.toLowerCase()) &&
+      (filterPriority === "" || threat.priority === filterPriority)
+    );
+  });
+
+  return (
+    <div>
+      <h2>Dreigingslogboek</h2>
+      <input
+        type="text"
+        placeholder="Zoek op dreigingstype"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{ marginRight: "10px" }}
+      />
+      <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
+        <option value="">Alle Prioriteiten</option>
+        <option value="High">Hoog</option>
+        <option value="Medium">Middel</option>
+        <option value="Low">Laag</option>
+      </select>
+      <ul>
+        {filteredThreats.map((threat) => (
+          <li key={threat.id}>
+            <strong>{threat.type}</strong> in {threat.location} (Prioriteit: {threat.priority}, Tijd: {new Date(threat.timestamp).toLocaleString()})
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default ThreatLog;
+
+//Frontend Dashboard Uitbreiding
+Integreer het Notificatielogboek met filters in het dashboard.//
+
+import React from "react";
+import DynamicThreatTimeline from "./DynamicThreatTimeline";
+import CriticalNotifications from "./CriticalNotifications";
+import DynamicHeatMap from "./DynamicHeatMap";
+import ThreatLog from "./ThreatLog";
+
+const Dashboard = () => {
+  return (
+    <div>
+      <h1>Veiligheidsdashboard</h1>
+      <CriticalNotifications />
+      <ThreatLog />
+      <DynamicThreatTimeline />
+      <DynamicHeatMap />
+    </div>
+  );
+};
+
+export default Dashboard;
