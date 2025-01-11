@@ -1,0 +1,87 @@
+//React Frontend Aanpassingen
+Voeg knoppen toe om de bestanden te downloaden.
+
+Downloadknoppen voor Export//
+
+import React from "react";
+
+const ExportButtons = () => {
+  const downloadFile = (format) => {
+    const url = `http://localhost:5000/stats/export/${format}`;
+    fetch(url, {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = `stats.${format}`;
+        link.click();
+      })
+      .catch((error) => console.error(`Error downloading ${format}:`, error));
+  };
+
+  return (
+    <div>
+      <h3>Exporteren:</h3>
+      <button onClick={() => downloadFile("csv")}>Exporteren als CSV</button>
+      <button onClick={() => downloadFile("pdf")}>Exporteren als PDF</button>
+    </div>
+  );
+};
+
+export default ExportButtons;
+
+//Statistiekenpagina Uitbreiding
+Voeg de ExportButtons-component toe aan de statistiekenpagina.//
+
+import React, { useEffect, useState } from "react";
+import ExportButtons from "./ExportButtons";
+
+const Statistics = () => {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/stats", {
+      credentials: "include",
+    })
+      .then((response) => response.json())
+      .then((data) => setStats(data))
+      .catch((error) => console.error("Error fetching stats:", error));
+  }, []);
+
+  if (!stats) return <p>Statistieken laden...</p>;
+
+  return (
+    <div>
+      <h2>Statistieken</h2>
+      <p>Totaal aantal dreigingen: {stats.total_threats}</p>
+      <h3>Dreigingen per type:</h3>
+      <ul>
+        {Object.entries(stats.threats_by_type).map(([type, count]) => (
+          <li key={type}>
+            {type}: {count}
+          </li>
+        ))}
+      </ul>
+      <h3>Dreigingen per prioriteit:</h3>
+      <ul>
+        {Object.entries(stats.threats_by_priority).map(([priority, count]) => (
+          <li key={priority}>
+            {priority}: {count}
+          </li>
+        ))}
+      </ul>
+      <ExportButtons />
+    </div>
+  );
+};
+
+export default Statistics;
+
+//
+
+CSV-bestanden bevatten dreigingsgegevens die eenvoudig in Excel of andere tools kunnen worden geopend.
+PDF-rapporten zijn geformatteerd voor gebruik in vergaderingen of documentatie.
+Downloadopties zijn geïntegreerd in de statistiekenpagina.//
