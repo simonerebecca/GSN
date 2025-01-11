@@ -1,0 +1,76 @@
+// Exporteren van Statistieken als PDF of CSV
+We voegen functionaliteit toe om statistieken te exporteren in PDF en CSV-formaat.
+
+1. Flask Backend: CSV en PDF Export
+Installaties
+We gebruiken Flask-SQLAlchemy, pandas (voor CSV), en ReportLab (voor PDF).//
+
+pip install pandas reportlab
+
+
+//CSV Export Endpoint
+We genereren een CSV-bestand met pandas en sturen het naar de frontend.//
+
+import pandas as pd
+from flask import make_response
+
+@app.route('/stats/export/csv', methods=['GET'])
+@login_required
+def export_stats_csv():
+    if current_user.role != "admin":
+        return jsonify({"message": "Toegang geweigerd"}), 403
+
+    threats = Threat.query.all()
+    data = [{
+        "type": threat.type,
+        "location": threat.location,
+        "priority": threat.priority,
+        "timestamp": threat.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    } for threat in threats]
+
+    df = pd.DataFrame(data)
+    csv = df.to_csv(index=False)
+
+    response = make_response(csv)
+    response.headers["Content-Disposition"] = "attachment; filename=stats.csv"
+    response.headers["Content-Type"] = "text/csv"
+    return response
+
+//PDF Export Endpoint
+We gebruiken ReportLab om een PDF-bestand te maken.//
+
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+
+@app.route('/stats/export/pdf', methods=['GET'])
+@login_required
+def export_stats_pdf():
+    if current_user.role != "admin":
+        return jsonify({"message": "Toegang geweigerd"}), 403
+
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    c.drawString(30, height - 30, "Dreigingsrapport - Statistieken")
+
+    threats = Threat.query.all()
+    y = height - 60
+    c.drawString(30, y, "Type | Locatie | Prioriteit | Tijd")
+    y -= 20
+
+    for threat in threats:
+        c.drawString(30, y, f"{threat.type} | {threat.location} | {threat.priority} | {threat.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+        y -= 20
+        if y < 50:
+            c.showPage()
+            y = height - 30
+
+    c.save()
+    buffer.seek(0)
+
+    response = make_response(buffer.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=stats.pdf"
+    response.headers["Content-Type"] = "application/pdf"
+    return response
