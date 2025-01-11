@@ -29,7 +29,7 @@ jobs:
       # 4. Kopieer de bestanden naar de server
       - name: Deploy Files to Server
         run: |
-          scp -P 2222 -o StrictHostKeyChecking=no styles.css scripts.js index.html webserver@93.158.211.7:/var/www/GSN/
+          scp -P 2222 -o StrictHostKeyChecking=no styles.css script.js index.html webserver@93.158.211.7:/var/www/GSN/
 
       # 5. Controleer of bestanden succesvol zijn overgezet
       - name: Verify Deployment
