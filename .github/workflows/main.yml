@@ -13,6 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Debug SSH Connection
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/your_private_key webserver@93.158.211.7 -p 2222 "ls /var/www"
+
       - name: Deploy to Server
         run: |
           ssh -o StrictHostKeyChecking=no webserver@93.158.211.7 -p 2222 "mkdir -p /var/www/GSN && rsync -avz /home/runner/work/GSN/GSN/ /var/www/GSN/"
