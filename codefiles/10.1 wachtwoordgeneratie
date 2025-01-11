@@ -1,0 +1,54 @@
+//Dynamische Wachtwoordgeneratie
+Het wachtwoord wordt specifiek voor elke gebruiker en downloadactie gegenereerd. Dit zorgt ervoor dat het wachtwoord uniek is en eenvoudig kan worden gekoppeld aan een gebruiker.
+
+Implementatie
+Een eenvoudig algoritme kan een combinatie gebruiken van:
+
+Gebruikersnaam (current_user.username).
+Tijdstempel (datetime.now()).
+Een salt of geheime sleutel.
+Hier is de code://
+
+import hashlib
+
+def generate_password(username, timestamp, secret_key="SuperSecretKey"):
+    """Genereert een uniek wachtwoord op basis van de gebruiker en een timestamp."""
+    data = f"{username}{timestamp}{secret_key}".encode('utf-8')
+    password = hashlib.sha256(data).hexdigest()[:12]  # Eerste 12 tekens van de hash
+    return password
+
+
+//Voorbeeldgebruik in de PDF-route://
+
+@app.route('/stats/export/pdf', methods=['GET'])
+@login_required
+def export_stats_pdf():
+    if current_user.role != "admin":
+        return jsonify({"message": "Toegang geweigerd"}), 403
+
+    # Timestamp en dynamisch wachtwoord
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    password = generate_password(current_user.username, timestamp)
+
+    # PDF-generatie en encryptie
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+
+    # Voorpagina en inhoud toevoegen...
+    # (Gebruik eerder gedeelde code hier)
+
+    # PDF genereren en versleutelen
+    doc.build(elements, canvasmaker=WatermarkCanvas)
+    encrypted_buffer = encrypt_pdf(buffer, password)
+
+    # Logging van downloadactie
+    log_pdf_download(current_user.username, timestamp)
+
+    # PDF retour
+    encrypted_buffer.seek(0)
+    response = make_response(encrypted_buffer.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=dreigingenrapport.pdf"
+    response.headers["Content-Type"] = "application/pdf"
+    return response
+
