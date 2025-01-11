@@ -1,0 +1,1 @@
+Gebruik Python-bibliotheken zoals requests om data van externe bronnen te halen en in de database op te slaan. Bijvoorbeeld:
