@@ -1,0 +1,43 @@
+//E-mail Notificaties voor Beheerders
+Stuur een e-mail naar de beheerder als:
+
+Een rapport is gegenereerd.
+Een gebruiker te vaak probeert te downloaden (misbruik).
+E-mail Instellen met Flask-Mail
+Installeer Flask-Mail://
+
+pip install Flask-Mail
+
+//Configuratie
+Voeg e-mailinstellingen toe aan je Flask-app://
+
+from flask_mail import Mail, Message
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'jouw-email@gmail.com'
+app.config['MAIL_PASSWORD'] = 'jouw-email-wachtwoord'
+mail = Mail(app)
+
+//E-mail Notificatie Functie
+Een functie om e-mails te versturen://
+
+def notify_admin(subject, body):
+    """Stuurt een e-mail naar de beheerder."""
+    msg = Message(subject, 
+                  sender=app.config['MAIL_USERNAME'], 
+                  recipients=['beheerder@voorbeeld.com'])
+    msg.body = body
+    mail.send(msg)
+
+
+//Gebruik in Routes
+Stuur een e-mail als een rapport wordt gegenereerd://
+
+notify_admin(
+    subject="Rapport gegenereerd",
+    body=f"Gebruiker {current_user.username} heeft een rapport gegenereerd op {datetime.now()}."
+)
+
+
