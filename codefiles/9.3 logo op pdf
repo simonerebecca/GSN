@@ -1,0 +1,80 @@
+//Toevoegen van een Logo en Aangepaste Opmaak aan de PDF
+We maken het PDF-rapport visueel aantrekkelijker door een logo, koppen, en een nette tabelstructuur toe te voegen. Hiervoor passen we de ReportLab-code aan.//
+
+Flask Backend: Verbeterde PDF Export
+Logo Uploaden
+Zorg dat je een logo beschikbaar hebt (bijvoorbeeld logo.png) en plaats deze in een map, bijvoorbeeld /static/images.
+
+PDF Generatie
+Hier is de aangepaste endpoint voor een opgemaakte PDF://
+
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image
+from io import BytesIO
+import os
+
+@app.route('/stats/export/pdf', methods=['GET'])
+@login_required
+def export_stats_pdf():
+    if current_user.role != "admin":
+        return jsonify({"message": "Toegang geweigerd"}), 403
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+
+    # Voeg logo toe
+    logo_path = os.path.join(app.root_path, 'static/images/logo.png')
+    if os.path.exists(logo_path):
+        img = Image(logo_path, width=100, height=50)
+        elements.append(img)
+
+    # Titel
+    from reportlab.lib.styles import getSampleStyleSheet
+    styles = getSampleStyleSheet()
+    elements.append(styles['Title'].clone('Dreigingsrapport - Statistieken'))
+
+    # Dreigingen ophalen
+    threats = Threat.query.all()
+    data = [["Type", "Locatie", "Prioriteit", "Tijd"]]
+    for threat in threats:
+        data.append([
+            threat.type,
+            threat.location,
+            threat.priority,
+            threat.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        ])
+
+    # Maak een tabel
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    elements.append(table)
+
+    # Bouw PDF
+    doc.build(elements)
+    buffer.seek(0)
+
+    response = make_response(buffer.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=dreigingenrapport.pdf"
+    response.headers["Content-Type"] = "application/pdf"
+    return response
+
+
+//PDF Aanpassingen
+Logo: Het bestand logo.png wordt bovenaan toegevoegd.
+Tabelstijl: Een eenvoudige en gestructureerde tabel met kleur en lijnen.
+Titel: Een nette kop in een grotere stijl.
+Logo Voorbeeld
+Sla je logo op in static/images/logo.png. Het kan een PNG, JPG, of ander beeldformaat zijn. Zorg dat het bestand klein genoeg is (minder dan 200 KB).
+
+React Frontend
+Er zijn geen wijzigingen nodig in de frontend, omdat de wijzigingen volledig binnen de PDF-export zijn verwerkt.//
