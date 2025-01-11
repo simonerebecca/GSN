@@ -1,0 +1,131 @@
+// Toevoegen van Paginanummers en Dynamische Ondertekening aan het PDF-Rapport
+We passen de PDF verder aan met:
+
+Paginanummers: Worden onderaan elke pagina weergegeven.
+Dynamische Ondertekening: Een sectie met een digitale ondertekening of naam van de verantwoordelijke gebruiker.//
+
+//Aanpassingen in de Flask Backend
+1. Paginanummers
+Gebruik canvas.Canvas van ReportLab om paginanummers toe te voegen.
+
+2. Dynamische Ondertekening
+De ondertekening bevat:
+
+Naam van de ingelogde gebruiker (current_user.username).
+Datum en tijd van het rapport (datetime.now()).//
+
+// Aangepaste PDF-generatie
+Hier is de uitgebreide code://
+
+
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfgen import canvas
+from io import BytesIO
+import os
+from datetime import datetime
+
+
+class FooterCanvas(canvas.Canvas):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pages = []
+
+    def showPage(self):
+        self.pages.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self):
+        for page_num, page in enumerate(self.pages, start=1):
+            self.__dict__.update(page)
+            self.draw_page_number(page_num)
+            super().showPage()
+        super().save()
+
+    def draw_page_number(self, page_num):
+        self.setFont("Helvetica", 10)
+        self.drawRightString(
+            200 * mm, 10 * mm, f"Pagina {page_num}"
+        )
+
+
+@app.route('/stats/export/pdf', methods=['GET'])
+@login_required
+def export_stats_pdf():
+    if current_user.role != "admin":
+        return jsonify({"message": "Toegang geweigerd"}), 403
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+
+    # Voeg logo toe
+    logo_path = os.path.join(app.root_path, 'static/images/logo.png')
+    if os.path.exists(logo_path):
+        img = Image(logo_path, width=100, height=50)
+        elements.append(img)
+
+    # Titel
+    styles = getSampleStyleSheet()
+    title = Paragraph("Dreigingsrapport - Statistieken", styles['Title'])
+    elements.append(title)
+
+    # Dreigingen ophalen
+    threats = Threat.query.all()
+    data = [["Type", "Locatie", "Prioriteit", "Tijd"]]
+    for threat in threats:
+        data.append([
+            threat.type,
+            threat.location,
+            threat.priority,
+            threat.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        ])
+
+    # Maak een tabel
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    elements.append(table)
+
+    # Ondertekening toevoegen
+    signature_text = f"Rapport gegenereerd door: {current_user.username} op {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    signature = Paragraph(signature_text, styles['Normal'])
+    elements.append(signature)
+
+    # PDF genereren met paginanummers
+    doc.build(elements, canvasmaker=FooterCanvas)
+    buffer.seek(0)
+
+    response = make_response(buffer.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=dreigingenrapport.pdf"
+    response.headers["Content-Type"] = "application/pdf"
+    return response
+
+
+//Uitleg van Aanpassingen
+Paginanummers:
+
+Klasse FooterCanvas voegt automatisch paginanummers toe aan elke pagina.
+Paginanummers worden rechtsonder geplaatst.
+Ondertekening:
+
+Een sectie met de tekst:
+Naam van de ingelogde gebruiker (current_user.username).
+Datum en tijd van het rapport (datetime.now()).
+Geformatteerd als een alinea met ReportLab's Paragraph.
+Resultaat
+Professionele uitstraling:
+Paginanummers maken het document overzichtelijk.
+Logo en opgemaakte tabel zorgen voor een nette presentatie.
+Verantwoording:
+Dynamische ondertekening geeft een persoonlijke touch aan het rapport.
+//
