@@ -35,7 +35,7 @@ jobs:
       - name: Verify Deployment
         run: |
           ssh -p 2222 -o StrictHostKeyChecking=no webserver@93.158.211.7 "ls -l /var/www/GSN"
-          echo "Hallo"
+          echo "Deployment verifieerd, bestanden aanwezig."
 
       # 6. Log activiteit naar GitHub
       - name: Log Deployment Activity
