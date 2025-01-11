@@ -1,25 +1,50 @@
-name: CI/CD Workflow
+name: Deploy to Server
 
 on:
   push:
     branches:
-      - main
+      - main  # Trigger bij elke push naar de 'main'-branch
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # 1. Haal de repository op
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Debug SSH Connection
+      # 2. Voeg de private SSH-sleutel toe
+      - name: Add SSH Key
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/your_private_key webserver@93.158.211.7 -p 2222 "ls /var/www"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
-      - name: Deploy to Server
+      # 3. Voeg de server aan de lijst van bekende hosts toe
+      - name: Add Server to Known Hosts
+        run: ssh-keyscan -H ${{ secrets.WEBSERVER_KEY }} >> ~/.ssh/known_hosts
+          echo "stap 3"
+
+      # 4. Kopieer de bestanden naar de server
+      - name: Deploy Files to Server
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub webserver@93.158.211.7 -p 2222 "ls /var/www"
+          scp -o StrictHostKeyChecking=no styles.css scripts.js index.html ${{ secrets.WEBSERVER_KEY }}:/var/www/GSN/
+            echo "stap 4"
+            
+      # 5. Controleer of bestanden succesvol zijn overgezet
+      - name: Verify Deployment
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.WEBSERVER_KEY }} "ls -l /var/www/GSN"
+          echo "stap 5"
+
+      # 6. Optioneel: Log activiteit naar GitHub met Personal Token
+      - name: Log Deployment Activity
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.WEBSERVER_KEY }}          
+          GITHUB_TOKEN: ${{ secrets.GITHUB_KEY }}
+        run: |
+          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+          -d '{"body": "Deployment successful on `date`"}' \
+          https://api.github.com/repos/${{ github.repository }}/issues/1/comments
+          echo "stap 6"
+     
 
