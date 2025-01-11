@@ -1,0 +1,45 @@
+//Logging van Downloads
+Met logging kun je bijhouden wie toegang heeft gehad tot een rapport. Dit helpt bij audits en het onderzoeken van verdachte activiteiten.
+
+Database Aanpassen
+Maak een nieuwe tabel om de downloadacties bij te houden://
+
+from app import db
+
+class PDFDownloadLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    ip_address = db.Column(db.String(45), nullable=True)
+    file_name = db.Column(db.String(255), nullable=False)
+
+
+//Voer een migratie uit://
+
+flask db migrate -m "Add PDF download log"
+flask db upgrade
+
+//Logfunctie
+Voeg een functie toe om de downloads vast te leggen://
+
+from flask import request
+
+def log_pdf_download(username, timestamp, file_name="dreigingenrapport.pdf"):
+    """Logt een PDF-downloadactie in de database."""
+    ip_address = request.remote_addr
+    log_entry = PDFDownloadLog(
+        username=username,
+        timestamp=datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S'),
+        ip_address=ip_address,
+        file_name=file_name
+    )
+    db.session.add(log_entry)
+    db.session.commit()
+
+
+//Integratie
+De functie wordt opgeroepen in de export_stats_pdf-route://
+
+log_pdf_download(current_user.username, timestamp)
+
+
