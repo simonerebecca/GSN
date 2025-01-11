@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 let parser = new DOMParser();
                 let htmlDoc = parser.parseFromString(data, 'text/html');
 
+                // Log de gehele geparsed HTML voor debugging
+                console.log(htmlDoc);
+
                 // Zoek de juiste elementen in de HTML van de externe pagina (pas de selectors aan op basis van de werkelijke structuur)
                 let headlines = htmlDoc.querySelectorAll('.cyber-aanval-item'); // Dit is een voorbeeld, pas het aan naar de juiste selector
 
