@@ -24,7 +24,7 @@ jobs:
       # 3. Voeg de server aan de lijst van bekende hosts toe
       - name: Add Server to Known Hosts
         run: |
-          ssh-keyscan -p 2222 -H ${{ secrets.WEBSERVER_KEY }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p 2222 -H 93.158.211.7 >> ~/.ssh/known_hosts
 
       # 4. Kopieer de bestanden naar de server
       - name: Deploy Files to Server
