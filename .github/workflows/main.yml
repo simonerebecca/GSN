@@ -23,19 +23,18 @@ jobs:
 
       # 3. Voeg de server aan de lijst van bekende hosts toe
       - name: Add Server to Known Hosts
-        run: ssh-keyscan -H ${{ secrets.WEBSERVER_KEY }} >> ~/.ssh/known_hosts
-          echo "stap 3"
+        run: |
+          ssh-keyscan -p 2222 -H ${{ secrets.WEBSERVER_KEY }} >> ~/.ssh/known_hosts
 
       # 4. Kopieer de bestanden naar de server
       - name: Deploy Files to Server
         run: |
-          scp -o StrictHostKeyChecking=no styles.css scripts.js index.html ${{ secrets.WEBSERVER_KEY }}:/var/www/GSN/
-            echo "stap 4"
-            
+          scp -P 2222 -o StrictHostKeyChecking=no styles.css scripts.js index.html ${{ secrets.WEBSERVER_KEY }}:/var/www/GSN/
+
       # 5. Controleer of bestanden succesvol zijn overgezet
       - name: Verify Deployment
-        run: ssh -o StrictHostKeyChecking=no ${{ secrets.WEBSERVER_KEY }} "ls -l /var/www/GSN"
-          echo "stap 5"
+        run: |
+          ssh -p 2222 -o StrictHostKeyChecking=no ${{ secrets.WEBSERVER_KEY }} "ls -l /var/www/GSN"
 
       # 6. Optioneel: Log activiteit naar GitHub met Personal Token
       - name: Log Deployment Activity
@@ -44,7 +43,6 @@ jobs:
         run: |
           curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
           -d '{"body": "Deployment successful on `date`"}' \
-          https://api.github.com/repos/${{ github.repository }}/issues/1/comments
-          echo "stap 6"
-     
+          https://api.github.com/repos/${{ github.repository }}/issues/1/comments"
+
 
