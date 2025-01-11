@@ -1,0 +1,25 @@
+import psycopg2
+import requests
+
+# Verbinden met database
+conn = psycopg2.connect(
+    dbname="security_nexus",
+    user="username",
+    password="password",
+    host="localhost"
+)
+cursor = conn.cursor()
+
+# Externe data ophalen
+response = requests.get("https://api.example.com/security-data")
+data = response.json()
+
+# Data opslaan
+for item in data:
+    cursor.execute(
+        "INSERT INTO threats (title, description, date, source) VALUES (%s, %s, %s, %s)",
+        (item['title'], item['description'], item['date'], item['source'])
+    )
+conn.commit()
+cursor.close()
+conn.close()
