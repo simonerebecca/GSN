@@ -19,6 +19,7 @@ jobs:
 
       - name: Deploy to Server
         run: |
-          ssh -o StrictHostKeyChecking=no webserver@93.158.211.7 -p 2222 "mkdir -p /var/www/GSN && rsync -avz /home/runner/work/GSN/GSN/ /var/www/GSN/"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub webserver@93.158.211.7 -p 2222 "ls /var/www"
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.WEBSERVER_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.WEBSERVER_KEY }}          
+
