@@ -1,0 +1,89 @@
+//1. Veiligheid voor Gebruikersdata
+Authenticatie en Autorisatie:
+
+Authenticatie: Alleen geverifieerde gebruikers mogen toegang hebben tot de functie. Dit is al geïmplementeerd met @login_required in Flask.
+Autorisatie: De rol van de gebruiker wordt gecontroleerd met current_user.role. Alleen admins mogen dit rapport genereren.
+Gevoelige data beschermen:
+
+Zorg dat alleen data wordt weergegeven die relevant is voor de gebruiker. Vermijd dat privégegevens zoals IP-adressen of contactinformatie onbedoeld in het rapport terechtkomen.
+2. Beveiliging van PDF-bestanden
+PDF Encryptie:
+
+Gebruik PyPDF2 of een andere library om een wachtwoord in te stellen voor het gegenereerde PDF-bestand. Hierdoor kunnen alleen geautoriseerde personen het bestand openen.
+Hier is een voorbeeld://
+
+python
+
+from PyPDF2 import PdfReader, PdfWriter
+
+def encrypt_pdf(input_pdf, output_pdf, password):
+    reader = PdfReader(input_pdf)
+    writer = PdfWriter()
+
+    for page in reader.pages:
+        writer.add_page(page)
+
+    writer.encrypt(password)
+
+    with open(output_pdf, "wb") as output_file:
+        writer.write(output_file)
+
+# Gebruik: encrypt_pdf("rapport.pdf", "rapport_versleuteld.pdf", "SterkWachtwoord123")
+
+//3. Veiligheid van de Server
+Validatie van Input:
+
+Valideer gegevens uit de database. Zorg dat alleen geautoriseerde gegevens worden opgehaald en verwerkt.
+Sanitization van Bestanden:
+
+Controleer uploads, zoals logo's, om te voorkomen dat schadelijke bestanden op de server terechtkomen.
+Gebruik HTTPS:
+
+Zorg dat de website beveiligd is met HTTPS, zodat communicatie tussen de gebruiker en de server versleuteld is.
+4. Veiligheid van Rapporten
+Watermerken voor Traceerbaarheid:
+
+Voeg een unieke ID of naam van de verantwoordelijke gebruiker toe aan het watermerk, bijvoorbeeld://
+
+python
+
+self.drawCentredString(0, 0, f"VERSTRENGD - {current_user.username}")
+//Logboeken:
+
+Houd bij wie een rapport heeft gegenereerd, inclusief tijdstip en gebruiker-ID.
+5. Best Practices voor Flask
+Rate Limiting:
+
+Beperk het aantal rapportgeneraties per gebruiker om misbruik te voorkomen.
+Logging:
+
+Log beveiligingsgerelateerde acties, zoals mislukte toegangspogingen of het downloaden van rapporten.
+6. Extra Functie: Beveiliging via Wachtwoord
+Stel een wachtwoord in bij het downloaden van het PDF-bestand. De gebruiker moet dit invoeren om toegang te krijgen.//
+
+python
+
+@app.route('/stats/export/pdf', methods=['GET'])
+@login_required
+def export_stats_pdf():
+    if current_user.role != "admin":
+        return jsonify({"message": "Toegang geweigerd"}), 403
+
+    # PDF-generatie code...
+    buffer.seek(0)
+
+    # Versleutel PDF met een wachtwoord
+    encrypted_buffer = BytesIO()
+    encrypt_pdf(buffer, encrypted_buffer, password="SterkWachtwoord123")
+    
+    response = make_response(encrypted_buffer.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=dreigingenrapport.pdf"
+    response.headers["Content-Type"] = "application/pdf"
+    return response
+
+//Conclusie
+Met deze extra beveiligingslagen zorg je ervoor dat:
+
+Alleen bevoegde gebruikers toegang hebben.
+De data beschermd wordt tijdens transport en opslag.
+De PDF-bestanden beveiligd zijn tegen ongeautoriseerde toegang.//
