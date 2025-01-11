@@ -1,0 +1,81 @@
+//Opslaan van Notificaties in een Database
+We slaan notificaties op in een SQLite-database via Flask.
+
+Backend: SQLite Configuratie
+Gebruik SQLAlchemy voor een eenvoudige ORM-oplossing.
+
+Installatie://
+
+pip install flask-sqlalchemy
+
+//Database Configuratie in Flask://
+from flask import Flask, jsonify, request
+from flask_sqlalchemy import SQLAlchemy
+from flask_socketio import SocketIO
+import random
+import time
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///threats.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Database Model
+class Threat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(50), nullable=False)
+    location = db.Column(db.String(100), nullable=False)
+    priority = db.Column(db.String(20), nullable=False)
+    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+# Database Initialisatie
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
+# API Endpoint: Opslaan nieuwe dreiging
+@app.route('/save-threat', methods=['POST'])
+def save_threat():
+    data = request.json
+    new_threat = Threat(
+        type=data['type'],
+        location=data['location'],
+        priority=data['priority']
+    )
+    db.session.add(new_threat)
+    db.session.commit()
+    return jsonify({"message": "Threat saved successfully"}), 201
+
+# API Endpoint: Ophalen dreigingen
+@app.route('/get-threats', methods=['GET'])
+def get_threats():
+    threats = Threat.query.order_by(Threat.timestamp.desc()).all()
+    return jsonify([{
+        "id": t.id,
+        "type": t.type,
+        "location": t.location,
+        "priority": t.priority,
+        "timestamp": t.timestamp
+    } for t in threats])
+
+
+//WebSocket Aanpassing: Dreiging Opslaan
+Voeg een logica toe om dreigingen direct in de database op te slaan://
+@socketio.on('connect')
+def send_threats():
+    while True:
+        new_threat = {
+            "type": random.choice(["Cyberaanval", "Terrorisme", "Conflict"]),
+            "location": "Random City",
+            "lat": random.uniform(40.0, 60.0),
+            "lng": random.uniform(10.0, 30.0),
+            "priority": random.choice(["Low", "Medium", "High"])
+        }
+        # Opslaan in database
+        db.session.add(Threat(type=new_threat["type"], location=new_threat["location"], priority=new_threat["priority"]))
+        db.session.commit()
+        # Versturen naar frontend
+        socketio.emit('new_threat', new_threat)
+        time.sleep(5)
