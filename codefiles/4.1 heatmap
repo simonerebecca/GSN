@@ -1,0 +1,92 @@
+//Heatmap voor Dreigingen
+Een heatmap is ideaal om intensiteit van dreigingen visueel weer te geven. Hiervoor gebruiken we react-leaflet-heatmap-layer.//
+
+npm install react-leaflet-heatmap-layer
+
+//React Heatmap Component: HeatMap.jsx//
+
+import React from "react";
+import { MapContainer, TileLayer } from "react-leaflet";
+import HeatmapLayer from "react-leaflet-heatmap-layer";
+import "leaflet/dist/leaflet.css";
+
+const HeatMap = () => {
+  // Dummy data: [latitude, longitude, intensity]
+  const heatmapPoints = [
+    [52.3676, 4.9041, 0.8], // Amsterdam
+    [50.8503, 4.3517, 0.6], // Brussel
+    [50.4501, 30.5234, 1.0], // Kiev
+  ];
+
+  return (
+    <MapContainer center={[52.3676, 4.9041]} zoom={4} style={{ height: "500px", width: "100%" }}>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      />
+      <HeatmapLayer
+        points={heatmapPoints}
+        longitudeExtractor={(point) => point[1]}
+        latitudeExtractor={(point) => point[0]}
+        intensityExtractor={(point) => point[2]}
+        radius={25}
+      />
+    </MapContainer>
+  );
+};
+
+export default HeatMap;
+
+//Gegevens Dynamisch Laden uit Backend
+Flask API Endpoint:
+python//
+
+@app.route('/get-heatmap-data', methods=['GET'])
+def get_heatmap_data():
+    # Dummy data
+    heatmap_data = [
+        {"lat": 52.3676, "lng": 4.9041, "intensity": 0.8},  # Amsterdam
+        {"lat": 50.8503, "lng": 4.3517, "intensity": 0.6},  # Brussel
+        {"lat": 50.4501, "lng": 30.5234, "intensity": 1.0}, # Kiev
+    ]
+    return jsonify(heatmap_data)
+
+
+//React Heatmap Component: Dynamisch//
+
+import React, { useState, useEffect } from "react";
+import { MapContainer, TileLayer } from "react-leaflet";
+import HeatmapLayer from "react-leaflet-heatmap-layer";
+
+const DynamicHeatMap = () => {
+  const [heatmapPoints, setHeatmapPoints] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/get-heatmap-data")
+      .then((response) => response.json())
+      .then((data) =>
+        setHeatmapPoints(
+          data.map((point) => [point.lat, point.lng, point.intensity])
+        )
+      )
+      .catch((error) => console.error("Error fetching heatmap data:", error));
+  }, []);
+
+  return (
+    <MapContainer center={[52.3676, 4.9041]} zoom={4} style={{ height: "500px", width: "100%" }}>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      />
+      <HeatmapLayer
+        points={heatmapPoints}
+        longitudeExtractor={(point) => point[1]}
+        latitudeExtractor={(point) => point[0]}
+        intensityExtractor={(point) => point[2]}
+        radius={25}
+      />
+    </MapContainer>
+  );
+};
+
+export default DynamicHeatMap;
