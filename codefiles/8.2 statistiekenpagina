@@ -1,0 +1,96 @@
+//Statistiekenpagina
+Flask Backend: Statistieken Endpoint
+Maak een endpoint dat dreigingen samenvat.//
+
+from sqlalchemy import func
+
+@app.route('/stats', methods=['GET'])
+@login_required
+def get_stats():
+    if current_user.role != "admin":
+        return jsonify({"message": "Toegang geweigerd"}), 403
+
+    total_threats = db.session.query(func.count(Threat.id)).scalar()
+    threats_by_type = db.session.query(Threat.type, func.count(Threat.type)).group_by(Threat.type).all()
+    threats_by_priority = db.session.query(Threat.priority, func.count(Threat.priority)).group_by(Threat.priority).all()
+
+    return jsonify({
+        "total_threats": total_threats,
+        "threats_by_type": {t[0]: t[1] for t in threats_by_type},
+        "threats_by_priority": {t[0]: t[1] for t in threats_by_priority},
+    })
+
+
+//React Frontend: Statistiekenpagina
+Component: Statistieken//
+
+import React, { useEffect, useState } from "react";
+
+const Statistics = () => {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/stats", {
+      credentials: "include",
+    })
+      .then((response) => response.json())
+      .then((data) => setStats(data))
+      .catch((error) => console.error("Error fetching stats:", error));
+  }, []);
+
+  if (!stats) return <p>Statistieken laden...</p>;
+
+  return (
+    <div>
+      <h2>Statistieken</h2>
+      <p>Totaal aantal dreigingen: {stats.total_threats}</p>
+      <h3>Dreigingen per type:</h3>
+      <ul>
+        {Object.entries(stats.threats_by_type).map(([type, count]) => (
+          <li key={type}>
+            {type}: {count}
+          </li>
+        ))}
+      </ul>
+      <h3>Dreigingen per prioriteit:</h3>
+      <ul>
+        {Object.entries(stats.threats_by_priority).map(([priority, count]) => (
+          <li key={priority}>
+            {priority}: {count}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default Statistics;
+
+
+//Dashboard Menu Uitbreiding
+Integreer Gebruikersbeheer en Statistieken in het dashboardmenu//
+
+import React, { useState } from "react";
+import ThreatLog from "./ThreatLog";
+import UserManagement from "./UserManagement";
+import Statistics from "./Statistics";
+
+const Dashboard = () => {
+  const [view, setView] = useState("threats");
+
+  return (
+    <div>
+      <h1>Veiligheidsdashboard</h1>
+      <nav>
+        <button onClick={() => setView("threats")}>Dreigingen</button>
+        <button onClick={() => setView("users")}>Gebruikersbeheer</button>
+        <button onClick={() => setView("stats")}>Statistieken</button>
+      </nav>
+      {view === "threats" && <ThreatLog />}
+      {view === "users" && <UserManagement />}
+      {view === "stats" && <Statistics />}
+    </div>
+  );
+};
+
+export default Dashboard;
