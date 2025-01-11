@@ -1,0 +1,51 @@
+// Optioneel: Dashboard voor Logs
+Je kunt een beheerderspagina maken om de logs in te zien.
+
+Route voor Logs//
+
+@app.route('/admin/pdf-logs', methods=['GET'])
+@login_required
+def view_pdf_logs():
+    if current_user.role != "admin":
+        return jsonify({"message": "Toegang geweigerd"}), 403
+
+    logs = PDFDownloadLog.query.order_by(PDFDownloadLog.timestamp.desc()).all()
+    return render_template('admin/pdf_logs.html', logs=logs)
+
+
+//Template (admin/pdf_logs.html)//
+
+<table>
+    <thead>
+        <tr>
+            <th>Gebruiker</th>
+            <th>IP-adres</th>
+            <th>Tijdstip</th>
+            <th>Bestandsnaam</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.username }}</td>
+            <td>{{ log.ip_address }}</td>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.file_name }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+//Extra Verbeteringen
+Tijdelijke Wachtwoorden: Verstuur het gegenereerde wachtwoord via een beveiligd communicatiekanaal, bijvoorbeeld via e-mail of een downloadpagina.
+Rate Limiting: Gebruik Flask-Limiter om te voorkomen dat een gebruiker te vaak een PDF downloadt://
+
+from flask_limiter import Limiter
+limiter = Limiter(app, key_func=lambda: current_user.username)
+
+@app.route('/stats/export/pdf', methods=['GET'])
+@login_required
+@limiter.limit("5 per hour")  # Maximaal 5 downloads per uur
+def export_stats_pdf():
+    # Code hier...
