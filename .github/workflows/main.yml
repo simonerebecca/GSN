@@ -29,20 +29,18 @@ jobs:
       # 4. Kopieer de bestanden naar de server
       - name: Deploy Files to Server
         run: |
-          scp -P 2222 -o StrictHostKeyChecking=no styles.css scripts.js index.html ${{ secrets.WEBSERVER_KEY }}:/var/www/GSN/
+          scp -P 2222 -o StrictHostKeyChecking=no styles.css scripts.js index.html webserver@93.158.211.7:/var/www/GSN/
 
       # 5. Controleer of bestanden succesvol zijn overgezet
       - name: Verify Deployment
         run: |
-          ssh -p 2222 -o StrictHostKeyChecking=no ${{ secrets.WEBSERVER_KEY }} "ls -l /var/www/GSN"
+          ssh -p 2222 -o StrictHostKeyChecking=no webserver@93.158.211.7 "ls -l /var/www/GSN"
 
-      # 6. Optioneel: Log activiteit naar GitHub met Personal Token
+      # 6. Log activiteit naar GitHub
       - name: Log Deployment Activity
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_KEY }}
         run: |
           curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
           -d '{"body": "Deployment successful on `date`"}' \
-          https://api.github.com/repos/${{ github.repository }}/issues/1/comments"
-
-
+          https://api.github.com/repos/${{ github.repository }}/issues/1/comments
