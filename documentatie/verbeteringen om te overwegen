@@ -1,4 +1,5 @@
-//Het platform "Global Security Nexus" is inderdaad een complex systeem met veel verschillende functionaliteiten, zoals rapportgeneratie, beveiliging, interactieve dashboards en API-koppelingen. Hieronder is een gedetailleerde evaluatie van de geschreven code, met suggesties voor verbeteringen en uitbreidingen om de codebase beter schaalbaar, veilig en efficiënt te maken.
+//Het platform "Global Security Nexus" is inderdaad een complex systeem met veel verschillende functionaliteiten, zoals rapportgeneratie, beveiliging, interactieve dashboards en API-koppelingen. 
+Hieronder is een gedetailleerde evaluatie van de geschreven code, met suggesties voor verbeteringen en uitbreidingen om de codebase beter schaalbaar, veilig en efficiënt te maken.
 
 Evaluatie en Verbeteringen
 1. Algemene Structuur
@@ -13,6 +14,8 @@ Voorbeeld van App Factory Pattern:
 
 python
 //
+
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
